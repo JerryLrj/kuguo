@@ -1,0 +1,7 @@
+com/kuguo/front/repository/UserDaoTest.class
+com/kuguo/front/repository/ProductDaoTest.class
+com/kuguo/front/service/ProductServiceTest.class
+com/kuguo/front/repository/LabelDaoTest.class
+com/kuguo/front/KuguoServer.class
+com/kuguo/front/SpringTransactionalTestCase.class
+com/kuguo/front/JettyFactory.class

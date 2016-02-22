@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuguo.front.repository.CommentDao">
+	<insert id="save" useGeneratedKeys="true" keyProperty="id">
+		insert into product_comment(content,user_id,product_id)
+		values(#{content},#{user.id},#{productId})
+	</insert>
+	
+	<select id="getComments" parameterType="int" resultType="Comment">
+		select
+			c.id,
+			c.content,
+			c.poke,
+			c.hoot,
+			c.create_time,
+			u.id `user.id`,
+			u.head `user.head`,
+			u.bio 'user.bio',
+			u.name 'user.name'
+		from		
+			product_comment c,user u
+		where
+			c.user_id = u.id and
+			c.product_id = #{id}
+		order by
+			c.create_time
+	</select>
+		
+
+</mapper>

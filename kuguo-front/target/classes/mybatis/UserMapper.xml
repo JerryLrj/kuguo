@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuguo.front.repository.UserDao">
+	<resultMap type="user" id="user">
+		<result column="id" property="id"/>
+		<result column="name" property="name" />
+		<result column="bio" property="bio"/>
+		<result column="head" property="head"/>
+		<result column="address" property="address"/>
+	</resultMap>
+
+	<select id="getHotUsers" parameterType="int" resultType="user">
+		select
+			u.id,
+			u.name,
+			u.bio,
+			u.head,
+			count(p.user_id) nd
+		from 
+			product p,user u
+		where
+			p.user_id = u.id
+		group by
+			p.user_id
+		order by
+			nd
+		desc
+		limit 5;
+	</select>
+		
+	<select id="get" parameterType="int" resultType="User">
+		select 
+			u.id,
+			u.name,
+			u.head,
+			u.bio,
+			u.address,
+			u.gender,
+			u.website,
+			u.email
+		from 
+			user u 
+		where 
+			u.id = #{id}
+	</select>
+		
+	<select id="getUser" parameterType="int" resultType="User">
+		select
+			u.id,
+			u.name,
+			u.head,
+			u.bio,
+			u.address,
+			u.email
+		from 
+			user u
+	</select>
+	
+	<insert id="save" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+		insert into user (
+			name, password, email,head,address,gender,website,bio,salt
+		) values (
+			#{name}, #{password}, #{email},#{head},#{address},#{gender},#{website},#{bio},#{salt}
+		)
+	</insert>
+
+
+	<update id="update" parameterType="User">
+	  update user set
+	  	<if test="password != null">
+	   		password = #{password},
+	  	</if>
+	  	<if test="email != null">
+	    	email = #{email},
+	  	</if>
+	  	<if test="head != null">
+	    	head = #{head},
+	  	</if>
+	  	<if test="address != null">
+	    	address = #{address},
+	  	</if>
+	  	<if test="city != null">
+	    	city = #{city},
+	  	</if>
+	  	<if test="gender != null">
+	    	gender = #{gender},
+	  	</if>
+	  	<if test="website != null">
+	    	website = #{website},
+	  	</if>
+	  	<if test="bio != null">
+		    bio = #{bio},
+	  	</if>
+	  	<if test="head != null">
+		    head = #{head},
+	  	</if>
+	  	<if test="salt != null">
+		    salt = #{salt},
+	  	</if>
+	  	<if test="name != null">
+		    name = #{name}
+	  	</if>
+	  where id = #{id}
+	</update>
+	
+	<select id="getUserByEmail" parameterType="string" resultType="User">
+		select
+			u.id,
+			u.name,
+			u.head,
+			u.bio,
+			u.address,
+			u.password,
+			u.email,
+			u.salt
+		from
+			user u 
+		where
+			u.email = #{email}
+	</select>
+	
+	<select id="getUserByName" parameterType="string" resultType="User">
+	select
+		u.id,
+		u.name,
+		u.head,
+		u.bio,
+		u.gender,
+		u.address,
+		u.city,
+		u.password,
+		u.email,
+		u.salt
+	from
+		user u 
+	where
+		u.name = #{name}
+	</select>
+	
+	<select id="getLikedProducts" parameterType="int" resultType="Product">
+		select
+			p.id,
+			p.favorite_num,
+			p.picture,
+			p.name
+		from
+			product_like l,product p 
+		where
+			l.product_id = p.id and
+			l.user_id = #{id}
+		order by
+			l.create_time
+		desc
+	</select>
+	
+	<select id="getFriends" parameterType="int" resultType="User">
+		select
+			u.id,
+			u.name,
+			u.head,
+			u.bio
+		from
+			user u, user_friend f
+		where
+			f.friend_id = u.id and
+			f.user_id = #{id}
+		order by
+			f.create_time
+		desc
+	</select>
+	
+	<insert id="setFriend" parameterType="Friend" >
+		insert into user_friend (
+			user_id, friend_id, create_time
+		) values (
+			#{uid.id}, #{fid.id}, #{create_time}
+		)
+	</insert>
+	
+	<delete id="unfollow" parameterType="Friend">
+		delete from
+			user_friend
+		where
+		 	user_id = #{uid.id}
+		and
+		 	friend_id = #{fid.id}
+	</delete>
+	
+	<select id="getFans" parameterType="int" resultType="User">
+		select
+			u.id,
+			u.name,
+			u.head,
+			u.bio
+		from
+			user u, user_friend f
+		where
+			f.user_id = u.id and
+			f.friend_id = #{id}
+		order by
+			f.create_time
+	</select>
+</mapper>

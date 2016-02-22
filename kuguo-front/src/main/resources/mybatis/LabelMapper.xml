@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuguo.front.repository.LabelDao">
+	<resultMap type="label" id="label">
+		<result column="id" property="id"/>
+		<result column="name" property="name"/>
+	</resultMap>
+	
+	<select id="get" parameterType="int" resultMap="label">
+		select
+			l.id,
+			l.name
+		from
+			label l
+		where
+			l.id = #{id}
+	</select>
+	
+	<select id="getByName" parameterType="string" resultMap="label">
+		select
+			l.id,
+			l.name
+		from
+			label l
+		where
+			l.name = #{name}
+	</select>
+	
+	<select id="getHotLabel" parameterType="int" resultMap="label" >
+		SELECT
+			l.id,
+			l.name,
+			count(pl.label_id) num
+		FROM
+			product_label pl, label l
+		where
+			pl.label_id = l.id
+		GROUP BY
+			pl.label_id
+		ORDER BY
+			num
+		DESC
+		LIMIT #{num}
+	</select>
+	
+	<select id="getLabelCountByUser" parameterType="int" resultType="int">
+		SELECT
+			count(l.id)
+		FROM
+			label l
+		where
+			l.create_user_id = #{id}
+	</select>
+	
+	<insert id="saveLabel" parameterType="Label" useGeneratedKeys="true" keyProperty="id">
+		insert into label
+			(name,product_id,create_user_id)
+		values
+			(#{name},#{product.id},#{create_user.id});
+	</insert>
+	
+	<insert id="saveProductLabel" parameterType="com.kuguo.front.entity.ProductLabel">
+		insert into product_label (
+			product_id, label_id
+		) values (
+			#{product.id},#{label.id}
+		)
+	</insert>
+</mapper>

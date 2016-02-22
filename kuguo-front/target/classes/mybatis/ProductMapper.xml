@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace必须指向Dao接口 -->
+<mapper namespace="com.kuguo.front.repository.ProductDao">
+	<resultMap type="product" id="product">
+		<result column="name" property="name"/>
+		<result column="description" property="description"/>
+		<result column="id" property="id"/>
+		<result column="picture" property="picture"/>
+		<result column="hots" property="hots"/>
+		<result column="favorite_num" property="favorite_num"/>
+		<result column="create_time" property="create_time"/>
+		<result column="price" property="price"/>
+		<result column="order_link" property="order_link"/>
+		<association property="user" column="user_id" javaType="User">
+			<id property="id" column="user_id"/>
+			<result property="name" column="user_name"/>
+			<result property="head" column="user_head"/>
+			<result property="bio" column="user_bio"/>
+		</association>
+		
+		<association property="comment" column="comment_id" javaType="Comment">
+			<id property="id" column="comment_id"/>
+			<result property="content" column="comment_content"/>
+			<result property="poke" column="comment_poke"/>
+			<result property="hoot" column="comment_hoot"/>
+			<result property="create_time" column="comment_time"/>
+		</association>
+	</resultMap>
+	
+	<select id="getAll" parameterType="int" resultMap="product">
+		select 
+			p.id,
+			p.name,
+			p.hots,
+			p.picture,
+			p.user_id,
+			p.favorite_num,
+			u.name user_name,
+			u.head user_head,
+			u.bio user_bio,
+			c.id comment_id,
+			c.content comment_content,
+			c.poke comment_poke,
+			c.hoot comment_hoot,
+			c.create_time comment_time
+		from 
+			product p,user u,product_comment c
+		where 
+			p.user_id = u.id and
+			p.id = c.product_id
+		group by c.product_id
+		order by p.create_time desc
+		limit #{page},5
+	</select>
+	
+	<select id="getCountProduct" resultType="Integer">
+		select 
+			count(p.id)
+		from
+			product p
+	</select>
+	
+	<select id="get" parameterType="int" resultMap="product">
+		select
+		 	p.id,
+			p.name,
+			p.hots,
+			p.picture,
+			p.user_id,
+			p.favorite_num,
+			p.order_link,
+			p.price,
+			p.create_time,
+			u.name user_name,
+			u.head user_head,
+			u.bio user_bio
+		from
+			product p,user u
+		where
+			p.user_id = u.id and
+			p.id = #{id}
+	</select>
+	
+	<select id="getLikedUsers" parameterType="int" resultType="User">
+		select
+			u.id,
+			u.head
+		from
+			user u,product_like p
+		where
+			p.user_id = u.id and
+			p.product_id = #{id}
+		order by
+			p.create_time
+		desc
+		limit 24
+	</select>
+	
+	<select id="getUP" parameterType="int" resultMap="product">
+		select
+			p.id,
+			p.order_link,
+			p.picture,
+			p.favorite_num
+		from
+			product p
+		where
+			p.user_id = #{id}
+	</select>
+	
+	<select id="getPop" parameterType="int" resultMap="product">
+		select 
+			p.id,
+			p.name,
+			p.hots,
+			p.user_id,
+			p.picture,
+			p.favorite_num,
+			u.name user_name,
+			u.head user_head,
+			c.id comment_id,
+			c.content comment_content,
+			c.poke comment_poke,
+			c.hoot comment_hoot,
+			c.create_time comment_time
+		from 
+			product_comment c,product p,user u
+		where 
+			p.user_id = u.id and
+			c.product_id = p.id
+		group by c.product_id
+		order by p.favorite_num desc
+		limit 30
+	</select>
+	
+	<insert id="save" parameterType="Product" useGeneratedKeys="true" keyProperty="id">
+		insert into product (
+			name,picture,order_link,brand,price,user_id,channel
+		)
+		values (
+			#{name}, #{picture}, #{order_link},#{brand}, #{price}, #{user.id}, #{channel}
+		)
+		<selectKey keyProperty="id" resultType="long">
+			select LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+	
+	<select id="getCommentProducts" parameterType="int" resultType="Product">
+		select
+			p.id,
+			p.name,
+			p.favorite_num,
+			p.picture,
+			c.content 'comment.content',
+			c.create_time 'comment.create_time'
+		from
+			product_comment c,product p
+		where
+			c.product_id = p.id and
+			c.user_id = #{id}
+	</select>
+	 
+	<select id="getFriendsActivity" parameterType="int" resultMap="product">
+		SELECT
+			p.id,
+			p.name,
+			p.hots,
+			p.picture,
+			p.user_id,
+			p.favorite_num,
+			p.order_link,
+			p.price,
+			p.create_time,
+			u.name user_name,
+			u.head user_head,
+			u.bio user_bio
+		FROM
+			product p,
+			user u,
+			user_friend uf,
+			product_comment c
+		WHERE
+			p.user_id = u.id
+		AND	p.id = c.product_id
+		AND u.id = uf.friend_id
+		AND uf.friend_id IN (
+			SELECT
+				uf.friend_id
+			FROM
+				user_friend uf
+			WHERE
+				uf.user_id = #{uid}
+		)
+		GROUP BY 
+			c.product_id
+		ORDER BY
+			p.create_time DESC
+		LIMIT
+			5
+	</select> 
+	
+	<select id="getProductByTag" parameterType="string" resultMap="product">
+		select 
+			p.id,
+			p.name,
+			p.hots,
+			p.user_id,
+			p.picture,
+			p.favorite_num,
+			u.name user_name,
+			u.head user_head,
+			c.id comment_id,
+			c.content comment_content,
+			c.poke comment_poke,
+			c.hoot comment_hoot,
+			c.create_time comment_time
+		from 
+			product_comment c,product p,user u
+		where 
+			p.user_id = u.id and
+			c.product_id = p.id AND
+			p.id in (SELECT
+					pl.product_id
+				FROM
+					product_label pl
+				WHERE
+					pl.label_id IN (
+						SELECT
+							id
+						FROM
+							label
+						WHERE
+							NAME = #{name}
+					))
+		group by c.product_id
+		order by p.favorite_num desc
+		limit 30
+	</select>
+
+	<update id="updateProduct" parameterType="Product">
+		update product set
+			favorite_num = #{favorite_num}
+		where
+			id = #{id}
+			
+	</update>
+</mapper> 
